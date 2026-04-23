@@ -1,0 +1,244 @@
+{
+  "info": {
+    "_postman_id": "b34e2cda-485a-4363-8ec2-14cf1b8dfd18",
+    "name": "Smart Campus API Tests (v1)",
+    "description": "Comprehensive test collection aligned with current SmartCampusApplication routes and exception mapping behavior.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Discovery",
+      "item": [
+        {
+          "name": "Discovery Endpoint (Root)",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Rooms",
+      "item": [
+        {
+          "name": "POST Create a new room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"ENG-101\",\n    \"name\": \"Library Quiet Study\",\n    \"capacity\": 150\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/rooms"
+          }
+        },
+        {
+          "name": "GET List all rooms",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/rooms"
+          }
+        },
+        {
+          "name": "GET Fetch specific room metadata",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/rooms/LIB-301"
+          }
+        },
+        {
+          "name": "DELETE decommission a room (Success)",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/rooms/LIB-301"
+          }
+        },
+        {
+          "name": "POST Create room for sensor linking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"ENG-101\",\n    \"name\": \"Engineering Wing\",\n    \"capacity\": 50\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/rooms"
+          }
+        },
+        {
+          "name": "DELETE room with active sensors (Fail 409)",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/rooms/ENG-101",
+            "description": "Run this after creating the 'TEMP-001' sensor in the Sensors folder to trigger the 409 Conflict Mapper."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Sensors",
+      "item": [
+        {
+          "name": "POST Register new sensor (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"TEMP-001\",\n    \"name\": \"Temperature Sensor T1\",\n    \"type\": \"TEMPERATURE\",\n    \"status\": \"ACTIVE\",\n    \"roomId\": \"ENG-101\"\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors"
+          }
+        },
+        {
+          "name": "POST Link to non-existent room (Fail 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"CO2-001\",\n    \"name\": \"CO2 Sensor\",\n    \"type\": \"CO2\",\n    \"status\": \"ACTIVE\",\n    \"roomId\": \"GHOST-ROOM\"\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors",
+            "description": "Expected to fail with HTTP 422 via ResourceNotFoundExceptionMapper when roomId does not exist."
+          }
+        },
+        {
+          "name": "GET List all sensors",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors"
+          }
+        },
+        {
+          "name": "GET Filter sensors by type (e.g. TEMPERATURE)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8090/smart-campus-api/api/v1/sensors?type=TEMPERATURE",
+              "host": [
+                "localhost"
+              ],
+              "port": "8090",
+              "path": [
+                "smart-campus-api",
+                "api",
+                "v1",
+                "sensors"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "TEMPERATURE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Register sensor in MAINTENANCE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"MAINT-001\",\n    \"name\": \"Maintenance Monitor\",\n    \"type\": \"TEMPERATURE\",\n    \"status\": \"MAINTENANCE\",\n    \"roomId\": \"ENG-101\"\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Sensor Readings",
+      "item": [
+        {
+          "name": "POST Append new reading (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"value\": 23.5,\n    \"timestamp\": 1698141600000\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors/TEMP-001/readings",
+            "description": "Server generates reading id automatically; timestamp is accepted when provided."
+          }
+        },
+        {
+          "name": "POST Append reading without timestamp (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"value\": 22.1\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors/TEMP-001/readings",
+            "description": "Expected success; server auto-fills timestamp when omitted."
+          }
+        },
+        {
+          "name": "GET Fetch sensor history",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors/TEMP-001/readings"
+          }
+        },
+        {
+          "name": "POST Append reading to MAINTENANCE sensor (Fail 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"value\": 24.5,\n    \"timestamp\": 1698141650000\n}"
+            },
+            "url": "http://localhost:8090/smart-campus-api/api/v1/sensors/MAINT-001/readings"
+          }
+        }
+      ]
+    }
+  ]
+}
